@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'markers/marker_catalog.dart';
+import 'markers/marker_specs.dart';
+
 void main() {
   runApp(const MarkerHitTestApp());
 }
@@ -28,6 +31,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _controller;
   Set<Marker> _markers = const {};
+  List<MarkerSpec> _specs = const [];
   String? _lastTapped;
 
   static const _initialCamera = CameraPosition(
@@ -35,8 +39,23 @@ class _MapScreenState extends State<MapScreen> {
     zoom: 17.5,
   );
 
-  void _onMapCreated(GoogleMapController controller) {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     _controller = controller;
+    // 1フレーム以上待ってからスクリーン座標→緯度経度の逆引きをする。
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    final mq = MediaQuery.of(context);
+    final result = await MarkerCatalog.buildAll(
+      controller: controller,
+      screenSize: mq.size,
+      devicePixelRatio: mq.devicePixelRatio,
+      onTap: (id) => setState(() => _lastTapped = id),
+    );
+    if (!mounted) return;
+    setState(() {
+      _markers = result.markers;
+      _specs = result.specs;
+    });
   }
 
   @override
@@ -57,18 +76,16 @@ class _MapScreenState extends State<MapScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    color: Colors.white70,
-                    child: Text(
-                      _lastTapped == null ? 'Phase 1 OK (no markers yet)' : 'tapped: $_lastTapped',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                color: Colors.white70,
+                child: Text(
+                  _lastTapped == null
+                      ? 'Phase 2 OK — markers: ${_markers.length}'
+                      : 'tapped: $_lastTapped (markers: ${_markers.length})',
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
             ),
           ),
