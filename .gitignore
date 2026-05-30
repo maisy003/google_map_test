@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# Build outputs
+**/build/
+**/.dart_tool/
+**/.gradle/
+**/captures/
+**/.cxx/
+
+# Local config (API keys etc.)
+**/local.properties
+**/key.properties
+**/*.keystore
+**/*.jks
+
+# Logs and screenshots (we keep summary CSV/figures, not raw screenshots)
+research/marker-hit-area-investigation/logs/*.jsonl
+research/marker-hit-area-investigation/reports/raw/*.csv
+research/marker-hit-area-investigation/.tmp/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Flutter generated
+.flutter-plugins
+.flutter-plugins-dependencies
