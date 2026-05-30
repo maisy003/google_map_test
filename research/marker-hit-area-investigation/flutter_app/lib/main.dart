@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -33,11 +35,18 @@ class _MapScreenState extends State<MapScreen> {
   Set<Marker> _markers = const {};
   List<MarkerSpec> _specs = const [];
   String? _lastTapped;
+  Timer? _resetTimer;
 
   static const _initialCamera = CameraPosition(
     target: LatLng(35.681236, 139.767125),
     zoom: 17.5,
   );
+
+  @override
+  void dispose() {
+    _resetTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
     _controller = controller;
@@ -49,12 +58,18 @@ class _MapScreenState extends State<MapScreen> {
       controller: controller,
       screenSize: mq.size,
       devicePixelRatio: mq.devicePixelRatio,
+      baseCamera: _initialCamera,
       onTap: (id) => setState(() => _lastTapped = id),
     );
     if (!mounted) return;
     setState(() {
       _markers = result.markers;
       _specs = result.specs;
+    });
+    // マーカー配置後、定期的にカメラを基準位置へ戻す。
+    // Maps SDK の既定パンを後追いで矯正する単純な戦略。
+    _resetTimer = Timer.periodic(const Duration(milliseconds: 150), (_) {
+      _controller?.moveCamera(CameraUpdate.newCameraPosition(_initialCamera));
     });
   }
 
@@ -72,6 +87,8 @@ class _MapScreenState extends State<MapScreen> {
             mapToolbarEnabled: false,
             rotateGesturesEnabled: false,
             tiltGesturesEnabled: false,
+            scrollGesturesEnabled: false,
+            zoomGesturesEnabled: false,
           ),
           SafeArea(
             child: Padding(

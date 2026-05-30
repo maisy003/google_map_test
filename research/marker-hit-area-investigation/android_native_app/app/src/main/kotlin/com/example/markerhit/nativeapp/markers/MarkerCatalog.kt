@@ -34,11 +34,13 @@ object MarkerCatalog {
             val latlng = map.projection.fromScreenLocation(Point(sx, sy))
 
             val bitmap = BitmapGenerator.generate(spec)
+            // .title を設定すると Maps SDK が InfoWindow を開きカメラを
+            // マーカー中心にパンしてしまう。本サンプルでは title を空にし、
+            // onMarkerClick で return true（既定挙動の抑止）と組み合わせる。
             val opts = MarkerOptions()
                 .position(latlng)
                 .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
                 .anchor(spec.anchor.x, spec.anchor.y)
-                .title(spec.id)
             val marker = map.addMarker(opts) ?: continue
             marker.tag = spec
             result[spec.id] = marker to spec

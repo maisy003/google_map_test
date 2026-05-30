@@ -1,0 +1,38 @@
+[
+  {
+    "hypothesis": "H1",
+    "description": "透明パディング増 → ヒット距離単調増 (Android, R3)",
+    "data_S0_S1_S2_S3": [
+      72,
+      0,
+      0,
+      0
+    ],
+    "monotonic": false,
+    "span_px": -72,
+    "verdict": "fail"
+  },
+  {
+    "hypothesis": "H2",
+    "description": "iOS は可視領域近く判定（本サンプルは Android only）",
+    "verdict": "not_applicable",
+    "note": "iOS は本サンプルの対象外。本番アプリでの目視/手動計測が必要。"
+  },
+  {
+    "hypothesis": "H3",
+    "verdict": "inconclusive",
+    "data": {
+      "R1": 0
+    }
+  },
+  {
+    "hypothesis": "H4",
+    "verdict": "inconclusive"
+  },
+  {
+    "hypothesis": "H5",
+    "description": "フォーク版と公式版で挙動差なし",
+    "verdict": "not_tested",
+    "note": "本サンプルではフォーク版 App-Ff を実装せず。"
+  }
+]

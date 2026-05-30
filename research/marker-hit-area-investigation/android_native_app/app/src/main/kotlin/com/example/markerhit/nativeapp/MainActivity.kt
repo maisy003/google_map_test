@@ -1,6 +1,8 @@
 package com.example.markerhit.nativeapp
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.markerhit.nativeapp.logging.HitLog
@@ -18,6 +20,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
     private lateinit var status: TextView
     private var markers: Map<String, Pair<Marker, MarkerSpec>> = emptyMap()
+    private val handler = Handler(Looper.getMainLooper())
+    private val baseCamera = CameraPosition.Builder()
+        .target(LatLng(35.681236, 139.767125))
+        .zoom(17.5f)
+        .build()
+    private val resetRunnable = object : Runnable {
+        override fun run() {
+            if (::googleMap.isInitialized) {
+                googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(baseCamera))
+            }
+            handler.postDelayed(this, 150)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +42,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         frag.getMapAsync(this)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(resetRunnable)
+    }
+
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         googleMap.uiSettings.apply {
@@ -34,23 +54,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             isTiltGesturesEnabled = false
             isMapToolbarEnabled = false
             isZoomControlsEnabled = false
+            isScrollGesturesEnabled = false
+            isZoomGesturesEnabled = false
         }
-        val target = LatLng(35.681236, 139.767125)
-        googleMap.moveCamera(
-            CameraUpdateFactory.newCameraPosition(
-                CameraPosition.Builder().target(target).zoom(17.5f).build()
-            )
-        )
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(baseCamera))
         googleMap.setOnMapLoadedCallback {
             markers = MarkerCatalog.buildAll(googleMap, resources.displayMetrics)
             status.text = "Phase 2 OK — markers: ${markers.size}"
+            // 周期的にカメラを基準位置に戻す（マーカークリック後の SDK 内挙動を後追い矯正）
+            handler.postDelayed(resetRunnable, 150)
         }
         googleMap.setOnMarkerClickListener { marker ->
             val spec = marker.tag as? MarkerSpec
             val id = spec?.id ?: marker.id
             HitLog.markerTap(id)
             status.text = "tapped: $id (markers: ${markers.size})"
-            true  // 戻り値 true = Maps SDK の既定のカメラ移動 / InfoWindow を抑止
+            true
         }
     }
 }

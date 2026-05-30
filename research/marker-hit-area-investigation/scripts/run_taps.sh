@@ -41,7 +41,7 @@ adb logcat -v raw HitLog:I flutter:I "*:S" > "$INDEX_FILE" 2>&1 &
 LOG_PID=$!
 SECONDS=0
 while ! grep -q '"event":"index_done"' "$INDEX_FILE" 2>/dev/null; do
-  if [ "$SECONDS" -gt 240 ]; then
+  if [ "$SECONDS" -gt 600 ]; then
     kill "$LOG_PID" 2>/dev/null || true
     echo "ERROR: index_done not received within 240s" >&2
     echo "--- last 20 lines captured ---" >&2

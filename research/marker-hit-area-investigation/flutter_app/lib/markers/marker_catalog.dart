@@ -12,6 +12,7 @@ class MarkerCatalog {
     required GoogleMapController controller,
     required Size screenSize,
     required double devicePixelRatio,
+    required CameraPosition baseCamera,
     required void Function(String id) onTap,
   }) async {
     final specs = buildSpecList();
@@ -50,8 +51,6 @@ class MarkerCatalog {
           position: latlng,
           icon: descriptor,
           anchor: Offset(spec.anchor.x, spec.anchor.y),
-          // タイトル無しの InfoWindow → InfoWindow が開かず Maps SDK の
-          // デフォルトカメラパンも発火しない。
           infoWindow: InfoWindow.noText,
           consumeTapEvents: true,
           onTap: () {
