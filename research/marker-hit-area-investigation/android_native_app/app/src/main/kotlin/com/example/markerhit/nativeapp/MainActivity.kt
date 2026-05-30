@@ -3,6 +3,7 @@ package com.example.markerhit.nativeapp
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.markerhit.nativeapp.logging.HitLog
 import com.example.markerhit.nativeapp.markers.MarkerCatalog
 import com.example.markerhit.nativeapp.markers.MarkerSpec
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -46,8 +47,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         googleMap.setOnMarkerClickListener { marker ->
             val spec = marker.tag as? MarkerSpec
-            status.text = "tapped: ${spec?.id ?: marker.id} (markers: ${markers.size})"
-            false  // false = let Maps SDK do default behavior (center / show info window)
+            val id = spec?.id ?: marker.id
+            HitLog.markerTap(id)
+            status.text = "tapped: $id (markers: ${markers.size})"
+            true  // 戻り値 true = Maps SDK の既定のカメラ移動 / InfoWindow を抑止
         }
     }
 }

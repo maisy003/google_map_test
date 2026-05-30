@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../logging/hit_log.dart';
 import 'bitmap_generator.dart';
 import 'marker_specs.dart';
 
-/// 18 マーカーの BitmapDescriptor 生成 + 緯度経度割り当て。
-/// 配置はスクリーン座標グリッド (3 列 × 6 行 = 18) を `getLatLng` で経緯度に逆変換。
-/// 計測フェーズではこの配置は使わず、1マーカーずつカメラ中央に持っていく。
 class MarkerCatalog {
-  /// Phase 2 用：見える状態にするためのフル配置。
   /// `screenSize` は論理 dp。内部で `devicePixelRatio` を掛けて
-  /// 物理ピクセル空間で `ScreenCoordinate` を作る。
+  /// 物理 px 空間で `ScreenCoordinate` を作る。
   static Future<({Set<Marker> markers, List<MarkerSpec> specs})> buildAll({
     required GoogleMapController controller,
     required Size screenSize,
@@ -20,7 +17,6 @@ class MarkerCatalog {
     final specs = buildSpecList();
     final markers = <Marker>{};
 
-    // 物理ピクセルで作業（ScreenCoordinate は物理 px）
     final physW = screenSize.width * devicePixelRatio;
     final physH = screenSize.height * devicePixelRatio;
 
@@ -31,21 +27,21 @@ class MarkerCatalog {
     final stepX = (physW - 2 * marginX) / (cols - 1);
     final stepY = (physH - 2 * marginY) / (rows - 1);
 
+    HitLog.indexStart(app: 'flutter');
+
     for (int i = 0; i < specs.length; i++) {
       final spec = specs[i];
       final col = i % cols;
       final row = i ~/ cols;
-      final sx = marginX + col * stepX;
-      final sy = marginY + row * stepY;
+      final sx = (marginX + col * stepX).round();
+      final sy = (marginY + row * stepY).round();
 
-      final latlng = await controller.getLatLng(
-        ScreenCoordinate(x: sx.round(), y: sy.round()),
-      );
+      final latlng = await controller.getLatLng(ScreenCoordinate(x: sx, y: sy));
 
       final pngBytes = await BitmapGenerator.generate(spec);
       final descriptor = BitmapDescriptor.bytes(
         pngBytes,
-        imagePixelRatio: spec.ratio.value, // R1=1.0, R3=3.0, RN=null
+        imagePixelRatio: spec.ratio.value,
       );
 
       markers.add(
@@ -54,10 +50,31 @@ class MarkerCatalog {
           position: latlng,
           icon: descriptor,
           anchor: Offset(spec.anchor.x, spec.anchor.y),
-          onTap: () => onTap(spec.id),
+          // タイトル無しの InfoWindow → InfoWindow が開かず Maps SDK の
+          // デフォルトカメラパンも発火しない。
+          infoWindow: InfoWindow.noText,
+          consumeTapEvents: true,
+          onTap: () {
+            HitLog.markerTap(spec.id);
+            onTap(spec.id);
+          },
         ),
       );
+
+      HitLog.index(
+        id: spec.id,
+        shape: spec.shape.id,
+        ratio: spec.ratio.id,
+        anchor: spec.anchor.id,
+        bitmapPxW: spec.bitmapPxWidth,
+        bitmapPxH: spec.bitmapPxHeight,
+        logicalPtW: spec.logicalPtWidth(devicePixelRatio),
+        logicalPtH: spec.logicalPtHeight(devicePixelRatio),
+        anchorScreenX: sx,
+        anchorScreenY: sy,
+      );
     }
+    HitLog.indexDone();
     return (markers: markers, specs: specs);
   }
 }
