@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.example.markerhit.nativeapp.TouchTrackingFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/touch_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -11,11 +13,13 @@
 
     <TextView
         android:id="@+id/status"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:padding="10dp"
         android:layout_margin="8dp"
-        android:background="#CCFFFFFF"
-        android:textSize="12sp"
-        android:text="Phase 1 OK (no markers yet)" />
-</FrameLayout>
+        android:background="#E6FFFFFF"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:lineSpacingExtra="2dp"
+        android:text="Ready — tap a marker to inspect" />
+</com.example.markerhit.nativeapp.TouchTrackingFrameLayout>

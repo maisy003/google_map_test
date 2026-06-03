@@ -13,7 +13,11 @@ import android.util.DisplayMetrics
  */
 object BitmapGenerator {
 
-    fun generate(spec: MarkerSpec): Bitmap {
+    /** ヒット時のハイライト用に色だけ差し替えた版を生成 */
+    fun generateHighlighted(spec: MarkerSpec): Bitmap =
+        generate(spec, highlightColor = "#1B5E20") // dark green
+
+    fun generate(spec: MarkerSpec, highlightColor: String? = null): Bitmap {
         val w = spec.bitmapPxWidth
         val h = spec.bitmapPxHeight
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -22,7 +26,7 @@ object BitmapGenerator {
         canvas.drawColor(Color.TRANSPARENT)
 
         val paint = Paint().apply {
-            color = Color.parseColor("#E53935")
+            color = Color.parseColor(highlightColor ?: "#E53935")
             style = Paint.Style.FILL
             isAntiAlias = true
         }
